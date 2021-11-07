@@ -35,8 +35,8 @@ int min_flips(vector<vector<ull>> H, int k, int known_min, unordered_set<int>& r
     int res = -1;
     repeats = 0;
     for (int cand = 0; cand < two_dim/2; cand++) {
-        if (cand != 0 && cand % 100000 == 0)
-            printf("%d/%lld\n", cand, two_dim);
+        if (cand != 0 && cand % 1000000 == 0)
+            printf("%d/%lld\n", cand, two_dim/2);
         int flips = 0;
         for (int r = 0; r < dim; r++) {
             int dist = num_one_bits(cand ^ H[k][r]);
