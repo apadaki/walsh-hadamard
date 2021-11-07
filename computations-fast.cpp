@@ -1,6 +1,4 @@
-#include <iostream>
-#include <algorithm>
-#include <vector>
+#include <bits/stdc++.h>
 
 #define ull unsigned long long int
 
@@ -16,6 +14,12 @@ void display_vector(vector<ull> vec) {
     }
     printf("\n");
 }
+void display_set(unordered_set<int> myset) {
+    for (int s : myset) {
+        printf("%d ", s);
+    }
+    printf("\n");
+}
 int num_one_bits(int num) {
     int res = 0;
     while (num > 0) {
@@ -25,21 +29,30 @@ int num_one_bits(int num) {
     return res;
 }
 
-int min_flips(vector<vector<ull>> H, int k) {
+int min_flips(vector<vector<ull>> H, int k, int known_min, unordered_set<int>& rowset, unordered_set<int>& flipset, int& repeats) {
     int dim = two_power(k);
     ull two_dim = two_power(dim);
-
     int res = -1;
-    for (int cand = 0; cand < two_dim; cand++) {
-        if (cand % 100000 == 0)
-            cout << cand << endl;
+    repeats = 0;
+    for (int cand = 0; cand < two_dim/2; cand++) {
+        if (cand != 0 && cand % 100000 == 0)
+            printf("%d/%lld\n", cand, two_dim);
         int flips = 0;
         for (int r = 0; r < dim; r++) {
-            int d = num_one_bits(cand ^ H[k][r]);
-            flips += min(d, dim-d);
+            int dist = num_one_bits(cand ^ H[k][r]);
+            flips += min(dist, dim-dist);
         }
         if (res == -1 || res > flips)
             res = flips;
+        
+        flipset.insert(flips);
+        if (flips == known_min) {
+            repeats++;
+            for (int r = 0; r < dim; r++) {
+                int dist = num_one_bits(cand ^ H[k][r]);
+                rowset.insert(min(dist, dim-dist));            
+            }
+        }
     }
     return res;
 }
@@ -62,6 +75,14 @@ int main() {
 
     int k;
     cin >> k;
-    cout << min_flips(H, k);
+    unordered_set<int> rowset, flipset;
+    int repeats = 0;
 
+    int known_min[] = {0,1,4,22,96,432};
+    printf("min_flips: %d\n", min_flips(H, k, known_min[k], rowset, flipset, repeats));
+    printf("num_optimal_solutions: %d\n", 2*repeats);
+    printf("rowset: ");
+    display_set(rowset);
+    printf("flipset: ");
+    display_set(flipset);
 }
