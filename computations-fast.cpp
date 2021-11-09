@@ -4,6 +4,21 @@
 
 using namespace std;
 
+struct pair_hash {
+    template <class T1, class T2>
+    size_t operator () (const pair<T1,T2> &p) const {
+        auto h1 = hash<T1>{}(p.first);
+        auto h2 = hash<T2>{}(p.second);
+
+        // Mainly for demonstration purposes, i.e. works but is overly simple
+        // In the real world, use sth. like boost.hash_combine
+        return h1 ^ h2;  
+    }
+};
+
+using Ints = pair<ull, ull>;
+using MyUnorderedMap = unordered_map<Ints, int, pair_hash>;
+
 
 ull two_power(int x) {
     return (ull) 1 << x;
@@ -20,12 +35,79 @@ void display_set(unordered_set<int> myset) {
     }
     printf("\n");
 }
-int num_one_bits(int num) {
+ull num_one_bits(ull num) {
     int res = 0;
     while (num > 0) {
         res += (num % 2 == 1);
         num /= 2;
     }
+    return res;
+}
+
+// ull num_one_bits_rec(ull num, ull mod_arg, unordered_map<ull,int>& dists_num) {
+//     if (dists_num.find(num) != dists_num.end())
+//         return dists_num[num];
+//     int res = 0;
+//     while (num > 0) {
+//         res += (num % 2 == 1);
+//         num /= 2;
+
+//     }
+//     return res;
+// }
+
+int hamming_distance(ull a, ull b, ull mod_arg, MyUnorderedMap& dists) {
+    pair<ull,ull> p(a,b);
+    pair<ull,ull> q(b,a);
+    if (mod_arg == 1)
+        return a != b;
+    if (dists.find(p) == dists.end() && dists.find(q) == dists.end()) {
+        int d1 = hamming_distance(a % mod_arg, b % mod_arg, sqrt(mod_arg), dists);
+        int d2 = hamming_distance(a / mod_arg, b / mod_arg, sqrt(mod_arg), dists);
+        dists[p] = dists[q] = d1+d2;
+    }
+    if (dists.find(p) == dists.end())
+        return dists[q];
+    return dists[p];
+}
+
+int min_flips_stat(vector<vector<ull>> H, int k, int max_samples) {
+    int dim = two_power(k);
+    ull two_dim = two_power(dim);
+    int res = -1;
+    int num_optimal_solutions = 0;
+    ull two_32 = ((ull)1 << 32);
+
+    MyUnorderedMap dists;
+
+    for (int i = 0; i < max_samples; i++) {
+        if (i != 0 && i % 1000 == 0)
+            printf("%d/%d | min_flips: %d | dists_size: %d\n", i, max_samples, res, dists.size());
+
+        int flips = 0;
+        ull cand = 0;
+        if (k < 6) 
+            cand = random() % two_dim;
+        else {
+            cand = random()*two_power(32) + random();
+        }
+        for (int r = 0; r < dim; r++) {
+            // ull dist = num_one_bits(cand ^ H[k][r]);
+            ull dist = hamming_distance(cand, H[k][r], two_32, dists);
+            // flips += min(dist, dim-dist);
+        }
+
+        if (res == -1 || res > flips) {
+            res = flips;
+            num_optimal_solutions = 0;
+        }
+        if (res == flips)
+            num_optimal_solutions++;
+    }
+
+    cout << num_optimal_solutions << endl;
+    printf("proportion_min: {%.8f}\n", (float)num_optimal_solutions/max_samples);
+
     return res;
 }
 
@@ -71,18 +153,23 @@ int main() {
         }
     }
 
-    // display_vector(H[5]);
+    // display_vector(H[6]);
+
 
     int k;
     cin >> k;
     unordered_set<int> rowset, flipset;
     int repeats = 0;
 
-    int known_min[] = {0,1,4,22,96,432};
-    printf("min_flips: %d\n", min_flips(H, k, known_min[k], rowset, flipset, repeats));
-    printf("num_optimal_solutions: %d\n", 2*repeats);
-    printf("rowset: ");
-    display_set(rowset);
-    printf("flipset: ");
-    display_set(flipset);
+    // int known_min[] = {0,1,4,22,96,432,-1,-1};
+    // printf("min_flips: %d\n", min_flips(H, k, known_min[k], rowset, flipset, repeats));
+    // printf("num_optimal_solutions: %d\n", 2*repeats);
+    // printf("rowset: ");
+    // display_set(rowset);
+    // printf("flipset: ");
+    // display_set(flipset);
+
+    printf("min_flips: %d\n", min_flips_stat(H, k, 1000000));
+
+    
 }

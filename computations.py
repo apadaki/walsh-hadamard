@@ -8,6 +8,7 @@ def increment_binary_list(bin_list):
         if bin_list[idx] == -1:
             break
         idx-=1
+    
 
 # compute hamming distance between two binary lists
 def hamming_dist(x, y):
@@ -18,17 +19,9 @@ def hamming_dist(x, y):
 
 # true values of f(H_k), the minimum number of flips to make H_k rank 1
 def known(k):
-    return [0,1,4,22,96,-1,-1,-1,-1][k]
+    return [0,1,4,22,96,432,-1,-1,-1][k]
 
-if __name__ == '__main__':
-    # compute list of H0 through H7
-    H = [np.array([1], dtype=int)]
-    h1 = np.array([[1,1],[1,-1]])
-    for i in range(1,8):
-        H.append(np.kron(h1,H[i-1]))
-
-    # accept k >= 1 as imput
-    k = int(input('enter value of k (1 to 7): '))
+def iterative_comp(H, k):
     # flipset, rowset for finding patterns
     flipset = set()
     rowset = set()
@@ -89,3 +82,46 @@ if __name__ == '__main__':
     print('flipset:', flipset) 
     print('rowset:', rowset) 
     
+def montecarlo_comp(H, k, n_iter=100):
+    dim = 2**k
+    min_flips = -1
+
+    min_candidate = 0
+    num_optimal_solns = 0
+    for i in range(n_iter):
+        if not i == 0 and i % 200 == 0:
+            print('({}/{}) | min_flips: {}'.format(i,n_iter, min_flips))
+
+        # generate random candidate
+        candidate = np.random.randint(0,2, size=(dim))*2-1
+        flips = 0
+
+        for j in range(dim):
+            dist = hamming_dist(candidate, H[k][j])
+            r = min(dist,dim-dist)
+            flips += r
+
+        if min_flips == -1 or min_flips > flips:
+            min_flips = flips
+            min_candidate = candidate
+            num_optimal_solns = 0
+        elif min_flips == flips:
+            num_optimal_solns+=1
+
+    print('min_flips: ', min_flips)
+    print('proportion_min: {:.10f}'.format(num_optimal_solns/n_iter))
+    print('example candidate: ', (min_candidate+1)/2)
+
+
+if __name__ == '__main__':
+    # compute list of H0 through H7
+    H = [np.array([1], dtype=int)]
+    h1 = np.array([[1,1],[1,-1]])
+    for i in range(1,8):
+        H.append(np.kron(h1,H[i-1]))
+
+    # accept k >= 1 as imput
+    k = int(input('enter value of k (1 to 7): '))
+
+    # iterative_comp(H, k)
+    montecarlo_comp(H,k, n_iter = 50000)
