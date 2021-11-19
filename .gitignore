@@ -1,0 +1,5 @@
+__pycache__
+binary_data
+*.out
+*.pdf
+*.tex

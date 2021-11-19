@@ -10,8 +10,6 @@ struct pair_hash {
         auto h1 = hash<T1>{}(p.first);
         auto h2 = hash<T2>{}(p.second);
 
-        // Mainly for demonstration purposes, i.e. works but is overly simple
-        // In the real world, use sth. like boost.hash_combine
         return h1 ^ h2;  
     }
 };
@@ -163,13 +161,13 @@ int main() {
 
     // int known_min[] = {0,1,4,22,96,432,-1,-1};
     // printf("min_flips: %d\n", min_flips(H, k, known_min[k], rowset, flipset, repeats));
-    // printf("num_optimal_solutions: %d\n", 2*repeats);
+    // printf("num_optimal_candidates: %d\n", repeats);
     // printf("rowset: ");
     // display_set(rowset);
     // printf("flipset: ");
     // display_set(flipset);
 
-    printf("min_flips: %d\n", min_flips_stat(H, k, 1000000));
+    printf("min_flips: %d\n", min_flips_stat(H, k, 10000));
 
     
 }

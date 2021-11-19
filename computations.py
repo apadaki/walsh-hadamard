@@ -21,14 +21,15 @@ def hamming_dist(x, y):
 def known(k):
     return [0,1,4,22,96,432,-1,-1,-1][k]
 
-def iterative_comp(H, k):
+def iterative_comp(H, k, verbose=True):
     # flipset, rowset for finding patterns
     flipset = set()
     rowset = set()
     if k < 1 or k > 7:
         exit(1)
-    print('H_{}:'.format(k))
-    print(H[k])
+    if verbose:
+        print('H_{}:'.format(k))
+        print(H[k])
     known_min_flips = known(k)
     num_optimal_solns = 0
     min_flips = -1
@@ -39,7 +40,7 @@ def iterative_comp(H, k):
     optimal_candidates = []
     solutions = []
     for i in range(2**(dim)):
-        if not i == 0 and i % 1000 == 0:
+        if verbose and not i == 0 and i % 1000 == 0:
             print('({}/{})'.format(i,2**dim))
         flips = 0
         # for each row, compute distance between candidate and row (or the inverse candidate if it is closer)
@@ -72,15 +73,18 @@ def iterative_comp(H, k):
         # move on to next candidate
         increment_binary_list(candidate)
 
-    # print first 32 optimal solutions
-    print('\nlist of (<=32) solutions:')
-    for soln in solutions[:32]:
-        print(np.array(H[k]!=soln, dtype=int), '\n')
-    # print set of total flips corresponding all (not necessarily optimal) solutions found by the method of candidate checking. note that values are only checked and stored here if they correspond to an optimal solution GIVEN some candidate.
-    print('min_flips: ', min_flips)
-    print('num_optimal_solutions:', num_optimal_solns)
-    print('flipset:', flipset) 
-    print('rowset:', rowset) 
+    if verbose:
+        # print first 32 optimal solutions
+        print('\nlist of (<=32) solutions:')
+        for soln in solutions[:32]:
+            print(np.array(H[k]!=soln, dtype=int), '\n')
+        # print set of total flips corresponding all (not necessarily optimal) solutions found by the method of candidate checking. note that values are only checked and stored here if they correspond to an optimal solution GIVEN some candidate.
+        print('min_flips: ', min_flips)
+        print('num_optimal_solutions:', num_optimal_solns)
+        print('flipset:', flipset) 
+        print('rowset:', rowset) 
+
+    return solutions
     
 def montecarlo_comp(H, k, n_iter=100):
     dim = 2**k
@@ -110,7 +114,6 @@ def montecarlo_comp(H, k, n_iter=100):
 
     print('min_flips: ', min_flips)
     print('proportion_min: {:.10f}'.format(num_optimal_solns/n_iter))
-    print('example candidate: ', (min_candidate+1)/2)
 
 
 if __name__ == '__main__':
@@ -123,5 +126,5 @@ if __name__ == '__main__':
     # accept k >= 1 as imput
     k = int(input('enter value of k (1 to 7): '))
 
-    # iterative_comp(H, k)
-    montecarlo_comp(H,k, n_iter = 50000)
+    iterative_comp(H, k)
+    # montecarlo_comp(H,k, n_iter = 50000)
